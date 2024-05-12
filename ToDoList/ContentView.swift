@@ -6,9 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var showNewTask = false
+    @Query var toDos: [ToDoItem]
+    @Environment(\.modelContext) var modelContext
     var body: some View {
         ZStack{
             Color(red: 167/255, green: 190/255, blue: 211/255)
@@ -33,12 +36,31 @@ struct ContentView: View {
                     
                     
                 }
-                .padding()
-                Spacer()
+                List {
+                                    ForEach(toDos) { toDoItem in
+                                        if toDoItem.isImportant {
+                                            Text("‼️" + toDoItem.title)
+                                        } else {
+                                            Text(toDoItem.title)
+                                        }
+                                    }
+                                    .onDelete(perform: deleteToDo)
+                                }
+                .listStyle(.plain)
+                .cornerRadius(15)
             }
+            .padding()
+            Spacer()
+            
             if showNewTask {
-                NewToDoView()
+                NewToDoView(toDoItem: ToDoItem(title: "", isImportant: false), showNewTask: $showNewTask)
             }
+        }
+    }
+    func deleteToDo(at offsets: IndexSet) {
+        for offset in offsets {
+            let toDoItem = toDos[offset]
+            modelContext.delete(toDoItem)
         }
     }
 }
